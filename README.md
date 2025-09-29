@@ -55,7 +55,7 @@ This is the easiest way to get started.
     ```bash
     docker-compose up --build
     ```
-4.  **Mirgations Using Alembic:**
+4.  **Migrations (Alembic):**
     ```bash
     docker-compose exec app poetry run alembic revision --autogenerate -m "Intital Migrations"
     docker-compose exec app poetry run alembic upgrade head
