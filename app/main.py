@@ -1,44 +1,67 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from loguru import logger
+import subprocess
+import asyncio
 
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.db.init_db import init_db
-from app.db.session import SessionLocal, engine
-from app.db.base_class import Base
+from app.db.session import SessionLocal
+
+async def run_migrations():
+    """Run database migrations with better error handling"""
+    try:
+        logger.info("Running database migrations...")
+        
+        # Run alembic upgrade head
+        result = subprocess.run(
+            ["poetry", "run", "alembic", "upgrade", "head"],
+            capture_output=True,
+            text=True,
+            timeout=30  # 30 second timeout
+        )
+        
+        if result.returncode == 0:
+            logger.info("✅ Database migrations completed successfully")
+            return True
+        else:
+            logger.warning(f"⚠️ Database migrations failed: {result.stderr}")
+            logger.info("Continuing without migrations...")
+            return False
+            
+    except subprocess.TimeoutExpired:
+        logger.error("❌ Database migrations timed out")
+        return False
+    except Exception as e:
+        logger.error(f"❌ Error running migrations: {e}")
+        return False
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # On startup
-    logger.info(f"Starting up with {settings.DB_TYPE} database...")
-    logger.info(f"Database URI: {settings.SQLALCHEMY_DATABASE_URI}")
+    logger.info("Starting up...")
+    logger.info(f"Using {settings.DB_TYPE} database")
     
-    # Create all database tables
-    try:
-        logger.info("Creating database tables...")
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database tables created successfully.")
-    except Exception as e:
-        logger.error(f"Error creating tables: {e}")
-        # Don't raise, continue startup
+    # Run migrations (but don't fail startup if they fail)
+    migration_success = await run_migrations()
     
-    # Seed initial data
+    if not migration_success:
+        logger.warning("Application starting without successful migrations")
+    
+    # Always try to seed data (init_db will check if tables exist)
     try:
         db = SessionLocal()
         await init_db(db)
         await db.close()
         logger.info("Database initialized successfully.")
     except Exception as e:
-        logger.error(f"Error seeding database: {e}")
-        # Don't raise, continue startup
+        logger.error(f"Error initializing database: {e}")
     
     yield
     
     # On shutdown
     logger.info("Shutting down...")
-    await engine.dispose()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -50,15 +73,11 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():
-    return {
-        "message": "Book Recommendation System API",
-        "database": settings.DB_TYPE,
-        "status": "running"
-    }
+    return {"message": "Book Recommendation System API"}
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint that verifies database connection"""
+    """Health check endpoint"""
     try:
         async with SessionLocal() as db:
             from sqlalchemy import text
@@ -75,11 +94,3 @@ async def health_check():
             "connection": "disconnected",
             "error": str(e)
         }
-
-@app.get("/config/database")
-async def get_database_config():
-    """Endpoint to show current database configuration"""
-    return {
-        "db_type": settings.DB_TYPE,
-        "database_uri": settings.SQLALCHEMY_DATABASE_URI.replace(settings.POSTGRES_PASSWORD, "***") if settings.DB_TYPE == "postgres" else settings.SQLALCHEMY_DATABASE_URI
-    }

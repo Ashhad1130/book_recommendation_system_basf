@@ -55,6 +55,15 @@ This is the easiest way to get started.
     ```bash
     docker-compose up --build
     ```
+4.  **Mirgations Using Alembic:**
+    ```bash
+    docker-compose exec app poetry run alembic revision --autogenerate -m "Intital Migrations"
+    docker-compose exec app poetry run alembic upgrade head
+    ```
+5.  **Check Current Migrations:**
+    ```bash
+       docker-compose exec app poetry run alembic current 
+    ```      
 
 The API will be available at `http://localhost:8000/docs`. The database migrations are applied automatically on startup.
 
@@ -77,7 +86,7 @@ The API will be available at `http://localhost:8000/docs`. The database migratio
     ```
 
 5.  **Initialize the database:**
-    For SQLite, the database file will be created automatically. For Postgres, you would run migrations.
+    For SQLite,Postgres, you would run migrations.
     ```bash
     # For Postgres, initialize alembic (only needs to be done once)
     # poetry run alembic init alembic

@@ -9,7 +9,3 @@ htmlcov/
 dist/
 build/
 .eggs/
-*.env.postgres
-*.env.sqlite
-*.db
-*.env

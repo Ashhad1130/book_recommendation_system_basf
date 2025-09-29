@@ -15,11 +15,12 @@ pydantic = {extras = ["email"], version = "^2.4.2"}
 pydantic-settings = "^2.0.3"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
-bcrypt = "^4.0.1"  # Explicit bcrypt dependency with correct version
+bcrypt = "^4.0.1"
 python-multipart = "^0.0.6"
 python-dotenv = "^1.0.0"
-asyncpg = "^0.28.0"  # PostgreSQL driver
-aiosqlite = "^0.19.0"  # SQLite driver
+asyncpg = "^0.28.0"  # For async PostgreSQL operations
+psycopg2 = "^2.9.9"  # Add this for Alembic and sync operations
+aiosqlite = "^0.19.0"
 alembic = "^1.12.0"
 tenacity = "^8.2.3"
 loguru = "^0.7.2"

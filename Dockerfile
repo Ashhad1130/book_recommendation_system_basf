@@ -2,10 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including PostgreSQL client libraries
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
@@ -17,7 +18,7 @@ COPY pyproject.toml poetry.lock* /app/
 # Configure Poetry to not create virtual env
 RUN poetry config virtualenvs.create false
 
-# Install dependencies (remove --no-dev flag)
+# Install dependencies
 RUN poetry install --no-root
 
 # Copy application code

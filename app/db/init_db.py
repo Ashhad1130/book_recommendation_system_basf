@@ -3,94 +3,84 @@ import os
 from pathlib import Path
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 from app.crud.crud_book import book as book_crud
 from app.schemas.book import BookCreate
 
-async def init_db(db: AsyncSession) -> None:
+def load_books_data() -> list:
+    """Load books data from JSON file"""
+    json_path = "data/books_seed.json"
+    logger.info(f"Loading books data from: {json_path}")
+    
     try:
-        # Try to check if books table exists and has data
+        with open(json_path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logger.error(f"Books data file not found: {json_path}")
+        # Try alternative path
+        alt_path = Path(__file__).parent.parent.parent / "data" / "books_seed.json"
+        logger.info(f"Trying alternative path: {alt_path}")
+        if alt_path.exists():
+            with open(alt_path) as f:
+                return json.load(f)
+        raise
+
+async def check_table_exists(db: AsyncSession, table_name: str) -> bool:
+    """Check if a table exists in the database"""
+    try:
+        if os.getenv("DB_TYPE") == "postgres":
+            query = text(
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = :table_name)"
+            )
+        else:
+            query = text(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=:table_name"
+            )
+        
+        result = await db.execute(query, {"table_name": table_name})
+        exists = result.scalar() is not None
+        logger.info(f"Table '{table_name}' exists: {exists}")
+        return exists
+    except Exception as e:
+        logger.warning(f"Error checking if table '{table_name}' exists: {e}")
+        return False
+
+async def init_db(db: AsyncSession) -> None:
+    """Initialize database with seed data"""
+    try:
+        # First check if book table exists
+        table_exists = await check_table_exists(db, "book")
+        
+        if not table_exists:
+            logger.warning("Book table does not exist. Skipping data seeding.")
+            return
+
+        # Check if books already exist
         try:
             book_count = await book_crud.get_count(db)
             if book_count > 0:
-                logger.info("Database already seeded. Skipping initial data load.")
+                logger.info(f"Database already has {book_count} books. Skipping initial data load.")
                 return
         except Exception as e:
-            logger.warning(f"Could not check book count (tables might be empty): {e}")
-            # Continue with seeding anyway
+            logger.warning(f"Error checking book count (tables might not be ready): {e}")
+            return
 
         logger.info("Seeding initial book data...")
-        
-        # Find and load the data file
         books_data = load_books_data()
-        
-        seeded_count = 0
+
+        books_created = 0
         for book_data in books_data:
             try:
                 book_in = BookCreate(**book_data)
-                created_book = await book_crud.create(db, obj_in=book_in)
-                seeded_count += 1
-                logger.debug(f"Added book: {created_book.title}")
+                await book_crud.create(db, obj_in=book_in)
+                books_created += 1
+                logger.debug(f"Successfully created book: {book_data['title']}")
             except Exception as e:
-                logger.warning(f"Could not insert book '{book_data.get('title', 'Unknown')}': {e}")
+                logger.warning(f"Could not insert book '{book_data['title']}': {e}")
+                # Continue with next book instead of failing completely
                 continue
         
-        logger.info(f"Successfully seeded {seeded_count} books.")
+        logger.info(f"Successfully seeded {books_created} out of {len(books_data)} books.")
         
     except Exception as e:
         logger.error(f"Error during database initialization: {e}")
-        logger.warning("Continuing without seeded data...")
-
-def load_books_data():
-    """Load books data from JSON file or return sample data"""
-    try:
-        data_file_path = Path("data/book_seed.json")
-        if data_file_path:
-            logger.info(f"Loading books data from: {data_file_path}")
-            with open(data_file_path, "r") as f:
-                return json.load(f)
-      
-            
-    except Exception as e:
-        logger.error(f"Error loading books data: {e}")
-        logger.warning("Using sample data instead.")
-        return get_sample_books_data()
-
-def get_sample_books_data():
-    """Return sample book data"""
-    return [
-        {
-            "title": "The Hitchhiker's Guide to the Galaxy",
-            "author": "Douglas Adams",
-            "genre": "Science Fiction"
-        },
-        {
-            "title": "Project Hail Mary",
-            "author": "Andy Weir", 
-            "genre": "Science Fiction"
-        },
-        {
-            "title": "Dune",
-            "author": "Frank Herbert",
-            "genre": "Science Fiction"
-        },
-        {
-            "title": "The Name of the Wind",
-            "author": "Patrick Rothfuss",
-            "genre": "Fantasy"
-        },
-        {
-            "title": "1984",
-            "author": "George Orwell",
-            "genre": "Dystopian"
-        },
-        {
-            "title": "Brave New World",
-            "author": "Aldous Huxley",
-            "genre": "Dystopian"
-        },
-        {
-            "title": "Pride and Prejudice",
-            "author": "Jane Austen",
-            "genre": "Romance"
-        }
-    ]
