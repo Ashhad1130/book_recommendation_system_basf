@@ -1,0 +1,11 @@
+# Created by pytest automatically.
+*.pyc
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+dist/
+build/
+.eggs/
