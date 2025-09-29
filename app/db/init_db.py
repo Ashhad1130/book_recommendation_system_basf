@@ -43,27 +43,12 @@ async def init_db(db: AsyncSession) -> None:
 def load_books_data():
     """Load books data from JSON file or return sample data"""
     try:
-        # Try multiple possible locations for the data file
-        possible_paths = [
-            Path("../../data/book_seed.json"),
-            Path("../data/books_seed.json"),
-            Path("./data/books_seed.json"),
-            Path(__file__).parent.parent.parent / "data" / "books_seed.json",
-        ]
-        
-        data_file_path = None
-        for path in possible_paths:
-            if path.exists():
-                data_file_path = path
-                break
-        
+        data_file_path = Path("data/book_seed.json")
         if data_file_path:
             logger.info(f"Loading books data from: {data_file_path}")
             with open(data_file_path, "r") as f:
                 return json.load(f)
-        else:
-            logger.warning("Books data file not found. Using sample data.")
-            return get_sample_books_data()
+      
             
     except Exception as e:
         logger.error(f"Error loading books data: {e}")
