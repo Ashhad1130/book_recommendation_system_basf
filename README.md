@@ -52,8 +52,10 @@ This is the easiest way to get started.
     ```
 
 3.  **Build and run the services:**
+    For Postgres use docker-compose.postgres.yml
+    For SQLite use docker-compose.sqlite.yml
     ```bash
-    docker-compose up --build
+    docker-compose -f docker-compose.postgres.yml up --build
     ```
 4.  **Migrations (Alembic):**
     ```bash
@@ -63,7 +65,19 @@ This is the easiest way to get started.
 5.  **Check Current Migrations:**
     ```bash
        docker-compose exec app poetry run alembic current 
-    ```      
+    ```  
+6.  **Users:**
+    List of users can be found in app/db/users.py
+    ```json
+       {
+        username: testuser,
+        password: testpassword
+       },
+       {
+        username: ashhad,
+        password: ashhadpassword
+       } 
+    ```     
 
 The API will be available at `http://localhost:8000/docs`. The database migrations are applied automatically on startup.
 
