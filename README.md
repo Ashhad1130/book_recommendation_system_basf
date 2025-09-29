@@ -33,7 +33,7 @@ This design makes the application highly testable and maintainable. For example,
 
 ## Setup and Run
 
-You can run this project using either Docker (recommended) or a local Python environment.
+You can run this project using either Docker (recommended) or a local Python 3.11 environment.
 
 ### 1. Using Docker (PostgreSQL)
 
