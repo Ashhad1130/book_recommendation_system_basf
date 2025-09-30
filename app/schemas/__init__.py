@@ -1,8 +1,8 @@
-from .book import Book, BookCreate, BookWithReviews
-from .review import Review, ReviewCreate
-from .token import Token, TokenData
-from .user import User
-from .msg import Msg
+from app.schemas.book import Book, BookCreate, BookWithReviews
+from app.schemas.review import Review, ReviewCreate
+from app.schemas.token import Token, TokenData
+from app.schemas.user import User
+from app.schemas.msg import Msg
 
 __all__ = [
     "Book",

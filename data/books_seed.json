@@ -2,36 +2,43 @@
   {
     "title": "The Hitchhiker's Guide to the Galaxy",
     "author": "Douglas Adams",
-    "genre": "Science Fiction"
+    "genre": "Science Fiction",
+    "google_books_id": "1"
   },
   {
     "title": "Project Hail Mary",
-    "author": "Andy Weir",
-    "genre": "Science Fiction"
+    "author": "Andy Weir", 
+    "genre": "Science Fiction",
+    "google_books_id": "2"
   },
   {
     "title": "Dune",
     "author": "Frank Herbert",
-    "genre": "Science Fiction"
+    "genre": "Science Fiction",
+    "google_books_id": "3"
   },
   {
     "title": "The Name of the Wind",
     "author": "Patrick Rothfuss",
-    "genre": "Fantasy"
+    "genre": "Fantasy",
+    "google_books_id": "4"
   },
   {
     "title": "1984",
     "author": "George Orwell",
-    "genre": "Dystopian"
+    "genre": "Dystopian",
+    "google_books_id": "5"
   },
   {
     "title": "Brave New World",
     "author": "Aldous Huxley",
-    "genre": "Dystopian"
+    "genre": "Dystopian", 
+    "google_books_id": "6"
   },
   {
     "title": "Pride and Prejudice",
     "author": "Jane Austen",
-    "genre": "Romance"
+    "genre": "Romance",
+    "google_books_id": "7"
   }
 ]

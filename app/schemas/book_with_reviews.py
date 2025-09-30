@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List
-from .book import Book
-from .review import Review
+from app.schemas.book import Book
+from app.schemas.review import Review
 
 class BookWithReviews(Book):
     reviews: List[Review] = []

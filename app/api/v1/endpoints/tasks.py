@@ -5,6 +5,7 @@ from app.api import deps
 from app.schemas.user import User
 from app.tasks.tasks import (
     refresh_book_data_from_source,
+    refresh_book_data_from_google_books,  # Add new task
     calculate_book_statistics,
     send_new_book_notification
 )
@@ -17,7 +18,7 @@ async def trigger_book_refresh(
     current_user: User = Depends(deps.get_current_user)
 ) -> Dict[str, Any]:
     """
-    Trigger background task to refresh book data
+    Trigger background task to refresh book data from seed file
     """
     # Send task to Celery worker
     task = refresh_book_data_from_source.delay()
@@ -27,6 +28,23 @@ async def trigger_book_refresh(
         "task_id": task.id,
         "status": "processing",
         "task_name": "refresh_book_data"
+    }
+
+@router.post("/refresh-google-books")
+async def trigger_google_books_refresh(
+    current_user: User = Depends(deps.get_current_user)
+) -> Dict[str, Any]:
+    """
+    Trigger background task to refresh book data from Google Books API
+    """
+    # Send task to Celery worker
+    task = refresh_book_data_from_google_books.delay()
+    
+    return {
+        "message": "Google Books refresh task started",
+        "task_id": task.id,
+        "status": "processing",
+        "task_name": "refresh_google_books_data"
     }
 
 @router.post("/calculate-statistics")
@@ -123,4 +141,29 @@ async def get_active_tasks(
         "total_active": sum(len(tasks) for tasks in active_tasks.values()),
         "total_scheduled": sum(len(tasks) for tasks in scheduled_tasks.values()),
         "total_reserved": sum(len(tasks) for tasks in reserved_tasks.values())
+    }
+
+@router.get("/scheduled-tasks")
+async def get_scheduled_tasks(
+    current_user: User = Depends(deps.get_current_user)
+) -> Dict[str, Any]:
+    """
+    Get list of scheduled periodic tasks
+    """
+    from app.tasks.celery_app import celery
+    
+    beat_schedule = celery.conf.beat_schedule
+    
+    scheduled_tasks = []
+    for task_name, task_config in beat_schedule.items():
+        scheduled_tasks.append({
+            "name": task_name,
+            "task": task_config["task"],
+            "schedule": str(task_config["schedule"]),
+            "options": task_config.get("options", {})
+        })
+    
+    return {
+        "scheduled_tasks": scheduled_tasks,
+        "total": len(scheduled_tasks)
     }

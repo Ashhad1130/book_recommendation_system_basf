@@ -33,7 +33,8 @@ class BookService:
                 "title": book_model.title,
                 "author": book_model.author,
                 "genre": book_model.genre,
-                "average_rating": avg_rating
+                "average_rating": avg_rating,
+                "google_books_id": book_model.google_books_id
             }
             books_with_avg_rating.append(Book(**book_dict))
             

@@ -1,11 +1,12 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
-from .review import Review
+from app.schemas.review import Review
 
 class BookBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     author: str = Field(..., min_length=1, max_length=255)
     genre: str = Field(..., min_length=1, max_length=100)
+    google_books_id: Optional[str] = Field(None, max_length=100)
 
 class BookCreate(BookBase):
     pass
